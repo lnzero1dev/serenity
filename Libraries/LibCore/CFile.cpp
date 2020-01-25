@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 CFile::CFile(const StringView& filename, CObject* parent)
@@ -48,6 +49,20 @@ bool CFile::open(int fd, CIODevice::OpenMode mode, ShouldCloseFileDescription sh
     set_mode(mode);
     m_should_close_file_descriptor = should_close;
     return true;
+}
+
+bool CFile::exists()
+{
+    struct stat st;
+    int rc = stat(String(m_filename).characters(), &st);
+    if (rc < 0) {
+        if (errno == ENOENT)
+            return false;
+    }
+    if (rc == 0) {
+        return true;
+    }
+    return false;
 }
 
 bool CFile::open(CIODevice::OpenMode mode)

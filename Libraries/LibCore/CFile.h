@@ -45,6 +45,8 @@ public:
     };
     bool open(int fd, CIODevice::OpenMode, ShouldCloseFileDescription);
 
+    bool exists();
+
 private:
     CFile(CObject* parent = nullptr)
         : CIODevice(parent)
