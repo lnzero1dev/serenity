@@ -28,7 +28,9 @@
 
 #include <AK/Forward.h>
 #include <AK/StdLibExtras.h>
+#include <AK/StringImpl.h>
 #include <AK/StringUtils.h>
+#include <AK/WeakPtr.h>
 
 namespace AK {
 
@@ -42,6 +44,13 @@ public:
         , m_length(length)
     {
     }
+    StringView(const char* characters, size_t length, const StringImpl* impl)
+        : m_impl(!impl ? nullptr : const_cast<StringImpl*>(impl)->make_weak_ptr())
+        , m_has_impl(impl ? true : false)
+        , m_characters((const char*)characters)
+        , m_length(length)
+    {
+    }
     StringView(const unsigned char* characters, size_t length)
         : m_characters((const char*)characters)
         , m_length(length)
@@ -52,12 +61,11 @@ public:
         , m_length(cstring ? __builtin_strlen(cstring) : 0)
     {
     }
-
     StringView(const ByteBuffer&);
     StringView(const String&);
     StringView(const FlyString&);
 
-    bool is_null() const { return !m_characters; }
+    bool is_null() const { return !m_characters || (m_has_impl && !m_impl); }
     bool is_empty() const { return m_length == 0; }
     const char* characters_without_null_termination() const { return m_characters; }
     size_t length() const { return m_length; }
@@ -140,11 +148,12 @@ public:
         return !(*this == other);
     }
 
-    const StringImpl* impl() const { return m_impl; }
+    const StringImpl* impl() const { return m_impl.ptr(); }
 
 private:
     friend class String;
-    const StringImpl* m_impl { nullptr };
+    WeakPtr<const StringImpl> m_impl { nullptr };
+    bool m_has_impl { false };
     const char* m_characters { nullptr };
     size_t m_length { 0 };
 };

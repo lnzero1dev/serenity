@@ -44,7 +44,7 @@ namespace AK {
 
 String::String(const StringView& view)
 {
-    if (view.m_impl)
+    if (view.m_impl && view.m_impl->length() == view.length())
         m_impl = *view.m_impl;
     else
         m_impl = StringImpl::create(view.characters_without_null_termination(), view.length());
@@ -137,7 +137,7 @@ StringView String::substring_view(size_t start, size_t length) const
     ASSERT(m_impl);
     ASSERT(start + length <= m_impl->length());
     // FIXME: This needs some input bounds checking.
-    return { characters() + start, length };
+    return { characters() + start, length, m_impl };
 }
 
 Vector<String> String::split(char separator, bool keep_empty) const
